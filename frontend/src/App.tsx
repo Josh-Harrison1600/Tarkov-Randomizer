@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
 import Footer from './Footer';
+import ItemPicked from './assets/ItemPicked.wav';
+import objectives from './Objectives';
 
 const App: React.FC = () => {
     const [guns, setGuns] = useState<string[]>([]);
@@ -10,7 +12,22 @@ const App: React.FC = () => {
     const [randomHelmet, setRandomHelmet] = useState<string | null>(null);
     const [armor, setArmor] = useState<string[]>([]);
     const [randomArmor, setRandomArmor] = useState<string | null>(null);
+    const [spinningGun, setSpinningGun] = useState<string | null>(null);
+    const [spinningHelmet, setSpinningHelmet] = useState<string | null>(null);
+    const [spinningArmor, setSpinningArmor] = useState<string | null>(null);
+    const [spinningMap, setSpinningMap] = useState<string | null>(null);
+    const [randomMap, setRandomMap] = useState<string | null>(null);
+    const [showLoadout, setShowLoadout] = useState(false); 
+    const [randomObjective, setRandomObjective] = useState<string | null>(null); 
+    const [spinningObjective, setSpinningObjective] = useState<string | null>(null);
+    const [maps] = useState<string[]>(["Customs", "Factory", "Shoreline", "Interchange", "Reserve", "Woods", "The Lab", "Lighthouse", "Streets of Tarkov", "Ground Zero"]);
     const videoUrl = import.meta.env.VITE_API_S3;
+
+    //function to play sound
+    const playSound = () => {
+        const audio = new Audio(ItemPicked);
+        audio.play();
+    }
 
     // Call the API to get the items
     const fetchItems = async (itemType: string) => {
@@ -40,21 +57,93 @@ const App: React.FC = () => {
       fetchAllItems();
     }, []);
 
-
-    // Function for selecting random weapon
+    //function for selecting random weapon
     const handleRandomize = () => {
+      setShowLoadout(true);
       if(guns.length > 0){
-        const randomGunIndex = Math.floor(Math.random() * guns.length);
-        setRandomGun(guns[randomGunIndex]);
-      }
-      if(helmets.length > 0){
-        const randomHelmetIndex = Math.floor(Math.random() * helmets.length);
-        setRandomHelmet(helmets[randomHelmetIndex]);
-      }
-      if(armor.length > 0){
-        const randomArmorIndex = Math.floor(Math.random() * armor.length);
-        setRandomArmor(armor[randomArmorIndex]);
-      }
+        let gunIndex = 0;
+        const gunInterval = setInterval(() => {
+            setSpinningGun(guns[gunIndex]);
+            gunIndex = (gunIndex + 1) % guns.length;
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(gunInterval);
+            const randomGunIndex = Math.floor(Math.random() * guns.length);
+            setRandomGun(guns[randomGunIndex]);
+            setSpinningGun(null);
+            playSound();
+        }, 2000);
+    }
+        //randomize helmets
+        if (helmets.length > 0) {
+            let helmetIndex = 0;
+            const helmetInterval = setInterval(() => {
+                setSpinningHelmet(helmets[helmetIndex]);
+                helmetIndex = (helmetIndex + 1) % helmets.length;
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(helmetInterval);
+                const randomHelmetIndex = Math.floor(Math.random() * helmets.length);
+                setRandomHelmet(helmets[randomHelmetIndex]);
+                setSpinningHelmet(null);
+                playSound();
+            }, 3000); 
+        }
+        //randomize armor
+        if (armor.length > 0) {
+            let armorIndex = 0;
+            const armorInterval = setInterval(() => {
+                setSpinningArmor(armor[armorIndex]);
+                armorIndex = (armorIndex + 1) % armor.length;
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(armorInterval);
+                const randomArmorIndex = Math.floor(Math.random() * armor.length);
+                setRandomArmor(armor[randomArmorIndex]);
+                setSpinningArmor(null);
+                playSound();
+            }, 4000);
+        }
+           //randomize maps
+            if (maps.length > 0) {
+                let mapIndex = 0;
+                const mapInterval = setInterval(() => {
+                    setSpinningMap(maps[mapIndex]);
+                    mapIndex = (mapIndex + 1) % maps.length;
+                }, 100);
+
+                setTimeout(() => {
+                    clearInterval(mapInterval);
+                    const randomMapIndex = Math.floor(Math.random() * maps.length);
+                    const selectedMap = maps[randomMapIndex];
+                    setRandomMap(selectedMap);
+                    setSpinningMap(null);
+                    playSound();
+
+                    setTimeout(() => {
+                        const mapObjectives = objectives[selectedMap] || [];
+                        if (mapObjectives.length > 0) {
+                            let objectiveIndex = 0;
+                            const objectiveInterval = setInterval(() => {
+                                setSpinningObjective(mapObjectives[objectiveIndex]);
+                                objectiveIndex = (objectiveIndex + 1) % mapObjectives.length;
+                            }, 100);
+
+                            setTimeout(() => {
+                                clearInterval(objectiveInterval);
+                                const randomObjectiveIndex = Math.floor(Math.random() * mapObjectives.length);
+                                setRandomObjective(mapObjectives[randomObjectiveIndex]);
+                                setSpinningObjective(null);
+                                playSound();
+                            }, 1000);
+                        }
+                    }); 
+                }, 5000);
+            }
+
     };
 
     return (
@@ -85,9 +174,32 @@ const App: React.FC = () => {
                     </span>
                     <span className="relative text-white font-bold">Generate Loadout</span>
                 </button>
-                {randomGun && <p className="text-2xl mt-4 text-white">Gun: {randomGun}</p>}
-                {randomHelmet && <p className="text-2xl mt-4 text-white">Helmet: {randomHelmet}</p>}
-                {randomArmor && <p className="text-2xl mt-4 text-white">Armor: {randomArmor}</p>}
+
+                {/* Display Random Gun, Helmet, and Armor */}
+                {showLoadout && (
+                    <div className="mt-6 text-white text-center">
+                    <div className="mb-4">
+                        <p className="text-2xl font-bold">Gun:</p>
+                        <p className="text-xl mt-2">{spinningGun || randomGun}</p>
+                    </div>
+                    <div className="mb-4">
+                        <p className="text-2xl font-bold">Helmet:</p>
+                        <p className="text-xl mt-2">{spinningHelmet || randomHelmet}</p>
+                    </div>
+                    <div className="mb-4">
+                        <p className="text-2xl font-bold">Armor:</p>
+                        <p className="text-xl mt-2">{spinningArmor || randomArmor}</p>
+                    </div>
+                    <div className="mb-4">
+                        <p className="text-2xl font-bold">Map:</p>
+                        <p className="text-xl mt-2">{spinningMap || randomMap}</p>
+                    </div>
+                    <div className="mb-4">
+                            <p className="text-2xl font-bold">Objective:</p>
+                            <p className="text-xl mt-2">{spinningObjective || randomObjective}</p>
+                        </div>
+                </div>
+                )}
             </div>
             <Footer />
         </div>

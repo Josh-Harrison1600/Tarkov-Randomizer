@@ -8,6 +8,13 @@ const PORT = 3001;
 
 app.use(cors());
 
+console.log("--------------------------------------");
+console.log("");
+console.log("STARTING WIKI SCRAPER");
+console.log("");
+console.log("--------------------------------------");
+
+
 //API for scraping the weapons section
 app.get('/api/guns', async (req, res) => {
   try {
@@ -17,22 +24,36 @@ app.get('/api/guns', async (req, res) => {
     const $ = load(data);
     const guns: string[] = [];
 
-    //Targets the specific CSS selector and the goes through each item containing the CSS
-    $('table.wikitable tbody tr').each((_, row) => {
-      const gunName = $(row).find('td a.mw-redirect').text().trim();
-      if (gunName) {
-        console.log("Found gun:", gunName);
-        guns.push(gunName);
-      }
-    });
+    // Helper function to extract guns from a specific category
+    const extractGunsFromCategory = (categoryId: string): void => {
+      const categorySection = $(`#${categoryId}`).parent();
+      const categoryTable = categorySection.nextAll('table.wikitable').first();
 
-    //Puts gun data into a JSON
+      categoryTable.find('tbody tr').each((_, row) => {
+        const gunName = $(row).find('td a.mw-redirect').text().trim();
+        if (gunName) {
+          console.log(`Found gun in ${categoryId}:`, gunName);
+          guns.push(gunName);
+        }
+      });
+    };
+
+    // Extract guns from the "Assault carbines" category
+    extractGunsFromCategory('Assault_carbines');
+
+    // Extract guns from the "Assault rifles" category
+    extractGunsFromCategory('Assault_rifles');
+
+    // Return the scraped data as JSON
     res.json({ guns });
   } catch (error) {
     console.error("Error occurred during scraping:", error);
     res.status(500).send('Error scraping guns');
   }
 });
+
+
+
 
 
 
