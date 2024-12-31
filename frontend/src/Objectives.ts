@@ -8,7 +8,7 @@ const objectives: Record<string, string[]> = {
     Lighthouse:["Kill Zryachiy", "Farm the Rogues", "Kill 3 PMC's", "Kill 5 PMC's", "Camp Sniper Rock"],
     "Ground Zero":["Kill Kollontay", "Kill 3 PMC's", "Kill 5 PMC's"],
     "The Lab":["Kill 5 PMC's", "Money Run", "Farm Raiders", "Camp a Keycard Room or Office"],
-    "Streets of Tarkov":["Kill Kaban", "Kill Kollontay", "Kill 3 PMC's", "Kill 5 PMC's", "Loot the Dealership", "Money Run", "Look Chek"]
+    "Streets of Tarkov":["Kill Kaban", "Kill Kollontay", "Kill 3 PMC's", "Kill 5 PMC's", "Loot the Dealership", "Money Run", "Loot Chek"]
 }
 
 export default objectives;
