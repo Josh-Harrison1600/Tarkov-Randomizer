@@ -10,7 +10,7 @@ const router = express.Router();
       const { data } = await axios.get("https://escapefromtarkov.fandom.com/wiki/Armor_vests"); 
       console.log("--------------------------------------");
       console.log();
-      console.log("Fetched HTML for armor vests");
+      console.log("Fetched HTML for Armor Vests");
       console.log();
       console.log("--------------------------------------");
       

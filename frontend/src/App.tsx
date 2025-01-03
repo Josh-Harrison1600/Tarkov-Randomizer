@@ -121,6 +121,44 @@ const App: React.FC = () => {
     </div>
   );
 
+  // DropdownItem Component
+  const DropdownItem: React.FC<{ label: string; options: string[] }> = ({ label, options }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <div className="relative">
+        {/* Dropdown Button */}
+        <button
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="w-full text-left bg-gray-700 rounded-lg px-4 py-2 flex justify-between items-center"
+        >
+          <span>{label}</span>
+          <svg
+            className={`w-4 h-4 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Dropdown Options */}
+        {isOpen && (
+          <div className="mt-2 bg-gray-700 rounded-lg px-4 py-2 space-y-2">
+            {options.map((option, index) => (
+              <label key={index} className="flex items-center">
+                <input type="checkbox" className="mr-2 accent-indigo-600" />
+                {option}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen">
       {/* Background Video */}
@@ -134,6 +172,19 @@ const App: React.FC = () => {
         <source src={videoUrl} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
+      {/* Customization Section */}
+      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-48 text-white">
+        <h3 className="text-xl font-bold mb-4 text-center">Customization</h3>
+        <div className="flex flex-col space-y-4">
+          <DropdownItem label="Guns" options={['Assault Carbines', 'Assault Rifles', 'Bolt-Action', 'Marksman Rifles', 'Shotguns', 'SMGs', 'LMGs', 'Launchers', 'Pistols', 'Revolvers']} />
+          <DropdownItem label="Helmets" options={['Hats']} />
+          <DropdownItem label="Armor" options={['Enabled']} />
+          <DropdownItem label="Rigs" options={['Armored Rigs', 'Unarmored Rigs']} />
+          <DropdownItem label="Backpacks" options={['Enabled']} />
+          <DropdownItem label="Maps" options={['Enabled']} />
+        </div>
+      </div>
 
       {/* Content */}
       <div className="flex-grow flex flex-col items-center justify-center text-red-500">

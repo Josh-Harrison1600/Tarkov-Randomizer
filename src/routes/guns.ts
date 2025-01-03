@@ -11,7 +11,7 @@ router.get('/guns', async (req, res) => {
       const { data } = await axios.get('https://escapefromtarkov.fandom.com/wiki/Weapons');
       console.log("--------------------------------------");
       console.log();
-      console.log("Fetched HTML for guns");
+      console.log("Fetched HTML for Guns");
       console.log();
       console.log("--------------------------------------");
   

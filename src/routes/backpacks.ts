@@ -4,7 +4,7 @@ import { load } from 'cheerio';
 
 const router = express.Router();
 
-  //API for scraping the Armor vests section
+  //API for scraping the backpack section
   router.get('/backpacks', async (req, res) => {
     try{
       const { data } = await axios.get("https://escapefromtarkov.fandom.com/wiki/Backpacks"); 
@@ -26,7 +26,7 @@ const router = express.Router();
       }
     });
 
-    //Puts armor vest data into a JSON
+    //Puts backpack data into a JSON
     res.json({ backpacks });
   } catch (error) {
     console.error("Error occurred during scraping:", error);

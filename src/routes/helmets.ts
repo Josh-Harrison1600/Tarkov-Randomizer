@@ -10,7 +10,7 @@
       const { data } = await axios.get("https://escapefromtarkov.fandom.com/wiki/Headwear"); 
       console.log("--------------------------------------");
       console.log();
-      console.log("Fetched HTML for helmets");
+      console.log("Fetched HTML for Helmets");
       console.log();
       console.log("--------------------------------------");
       
@@ -18,7 +18,7 @@
       const $ = load(data);
       const helmets: string[] = [];
 
-    // Helper function to extract guns from a specific category
+    // Helper function to extract helmets from a specific category
     const extractHelmetsFromCategory = (categoryId: string): void => {
         const categorySection = $(`#${categoryId}`).parent();
         const categoryTable = categorySection.nextAll('table.wikitable').first();
@@ -32,12 +32,12 @@
         });
       };
   
-      //extract guns from the respective categories
+      //extract helmets from the respective categories
       extractHelmetsFromCategory('Mount');
       extractHelmetsFromCategory('Armored');
       extractHelmetsFromCategory('Vanity');
   
-      //Puts gun data into a JSON
+      //Puts helmet data into a JSON
       res.json({ helmets });
     } catch (error) {
       console.error("Error occurred during scraping:", error);

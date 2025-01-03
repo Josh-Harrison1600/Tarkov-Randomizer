@@ -4,7 +4,7 @@ import { load } from 'cheerio';
 
 const router = express.Router();
 
-//API for scraping the helmets section
+//API for scraping the rigs section
 router.get('/rigs', async (req, res) => {
   try{
     const { data } = await axios.get("https://escapefromtarkov.fandom.com/wiki/Chest_rigs"); 
@@ -18,7 +18,7 @@ router.get('/rigs', async (req, res) => {
     const $ = load(data);
     const rigs: string[] = [];
 
-  // Helper function to extract guns from a specific category
+  // Helper function to extract rigs from a specific category
   const extractRigsFromCategory = (categoryId: string): void => {
       const categorySection = $(`#${categoryId}`).parent();
       const categoryTable = categorySection.nextAll('table.wikitable').first();
@@ -32,12 +32,12 @@ router.get('/rigs', async (req, res) => {
       });
     };
 
-    //extract guns from the respective categories
+    //extract rigs from the respective categories
     extractRigsFromCategory('Armored');
     extractRigsFromCategory('Unarmored');
 
 
-    //Puts gun data into a JSON
+    //Puts rigs data into a JSON
     res.json({ rigs });
   } catch (error) {
     console.error("Error occurred during scraping:", error);
