@@ -6,15 +6,14 @@ import ItemPicked from './assets/ItemPicked.wav';
 import objectives from './Objectives';
 
 const App: React.FC = () => {
-  // This defines the state for all item categories
-  const [items, setItems] = useState<Record<string, string[]>>({
+  const [items, setItems] = useState<Record<string, any>>({
     guns: [],
-    helmets: [],
+    helmets: { armored: [], vanity: [] },
     armor: [],
     rigs: [],
     backpacks: [],
     maps: ["Customs", "Factory", "Shoreline", "Interchange", "Reserve", "Woods", "The Lab", "Lighthouse", "Streets of Tarkov", "Ground Zero"],
-    objectives:[],
+    objectives: [],
   });
 
   const [randomized, setRandomized] = useState<Record<string, string | null>>({
@@ -37,17 +36,16 @@ const App: React.FC = () => {
     objectives: null,
   });
 
+  const [includeHats, setIncludeHats] = useState(true);
   const [showLoadout, setShowLoadout] = useState(false);
 
   const videoUrl = import.meta.env.VITE_API_S3;
 
-  // Audio for when item is selected
   const playSound = () => {
     const audio = new Audio(ItemPicked);
     audio.play();
   };
 
-  // Fetches backend information
   const fetchItems = async (itemType: string) => {
     try {
       const response = await fetch(`http://localhost:3001/api/${itemType}`);
@@ -60,7 +58,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Fetch all items from the backend
   useEffect(() => {
     const fetchAllItems = async () => {
       const guns = await fetchItems('guns');
@@ -80,20 +77,28 @@ const App: React.FC = () => {
     fetchAllItems();
   }, []);
 
-  // Randomize an item with spinning animation
   const randomizeItem = (type: string, delay: number) => {
-    if (items[type].length === 0) return;
+    let itemsToPick = items[type];
+
+    if (type === 'helmets') {
+      // This will combine armored and vanity helmets based on the "hats" checkbox
+      itemsToPick = includeHats
+        ? [...items.helmets.armored, ...items.helmets.vanity]
+        : items.helmets.armored;
+    }
+
+    if (itemsToPick.length === 0) return;
 
     let index = 0;
     const interval = setInterval(() => {
-      setSpinning((prev) => ({ ...prev, [type]: items[type][index] }));
-      index = (index + 1) % items[type].length;
+      setSpinning((prev) => ({ ...prev, [type]: itemsToPick[index] }));
+      index = (index + 1) % itemsToPick.length;
     }, 100);
 
     setTimeout(() => {
       clearInterval(interval);
-      const randomIndex = Math.floor(Math.random() * items[type].length);
-      setRandomized((prev) => ({ ...prev, [type]: items[type][randomIndex] }));
+      const randomIndex = Math.floor(Math.random() * itemsToPick.length);
+      setRandomized((prev) => ({ ...prev, [type]: itemsToPick[randomIndex] }));
       setSpinning((prev) => ({ ...prev, [type]: null }));
       playSound();
     }, delay);
@@ -149,7 +154,16 @@ const App: React.FC = () => {
           <div className="mt-2 bg-gray-700 rounded-lg px-4 py-2 space-y-2">
             {options.map((option, index) => (
               <label key={index} className="flex items-center">
-                <input type="checkbox" className="mr-2 accent-indigo-600" />
+                <input
+                  type="checkbox"
+                  className="mr-2 accent-indigo-600"
+                  onChange={(e) => {
+                    if (label === "Helmets" && option === "Hats") {
+                      setIncludeHats(e.target.checked);
+                    }
+                  }}
+                  checked={label === "Helmets" && option === "Hats" ? includeHats : undefined}
+                />
                 {option}
               </label>
             ))}
@@ -177,7 +191,21 @@ const App: React.FC = () => {
       <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-48 text-white">
         <h3 className="text-xl font-bold mb-4 text-center">Customization</h3>
         <div className="flex flex-col space-y-4">
-          <DropdownItem label="Guns" options={['Assault Carbines', 'Assault Rifles', 'Bolt-Action', 'Marksman Rifles', 'Shotguns', 'SMGs', 'LMGs', 'Launchers', 'Pistols', 'Revolvers']} />
+          <DropdownItem
+            label="Guns"
+            options={[
+              'Assault Carbines',
+              'Assault Rifles',
+              'Bolt-Action',
+              'Marksman Rifles',
+              'Shotguns',
+              'SMGs',
+              'LMGs',
+              'Launchers',
+              'Pistols',
+              'Revolvers',
+            ]}
+          />
           <DropdownItem label="Helmets" options={['Hats']} />
           <DropdownItem label="Armor" options={['Enabled']} />
           <DropdownItem label="Rigs" options={['Armored Rigs', 'Unarmored Rigs']} />
