@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
 import Footer from './Footer';
-import ItemPicked from './assets/ItemPicked.wav';
-import objectives from './Objectives';
 
 const App: React.FC = () => {
   // State for items fetched from the API
@@ -22,10 +20,9 @@ const App: React.FC = () => {
     },
     helmets: { armored: [], vanity: [] },
     armor: [],
-    rigs: [],
+    rigs: { Armored: [], Unarmored: [] },
     backpacks: [],
-    maps: ["Customs", "Factory", "Shoreline", "Interchange", "Reserve", "Woods", "The Lab", "Lighthouse", "Streets of Tarkov", "Ground Zero"],
-    objectives: [],
+    maps: ["Customs", "Factory", "Shoreline", "Interchange", "Reserve", "Woods", "The Lab", "Lighthouse", "Streets of Tarkov", "Ground Zero"]
   });
 
   // State for randomized items
@@ -35,8 +32,7 @@ const App: React.FC = () => {
     armor: null,
     rigs: null,
     backpacks: null,
-    maps: null,
-    objectives: null,
+    maps: null
   });
 
   // State for spinning animation during randomization
@@ -46,8 +42,7 @@ const App: React.FC = () => {
     armor: null,
     rigs: null,
     backpacks: null,
-    maps: null,
-    objectives: null,
+    maps: null
   });
 
   // State for selected gun types (for filtering)
@@ -71,12 +66,6 @@ const App: React.FC = () => {
 
   // Background video URL from environment variables
   const videoUrl = import.meta.env.VITE_API_S3;
-
-  // Play sound effect when an item is randomized
-  const playSound = () => {
-    const audio = new Audio(ItemPicked);
-    audio.play();
-  };
 
   // Fetch items from the API for a given type
   const fetchItems = async (itemType: string) => {
@@ -114,8 +103,20 @@ const App: React.FC = () => {
     fetchAllItems();
   }, []);
 
-  // Randomize an item for a given type with a delay
+  const [componentStatus, setComponentStatus] = useState<Record<string, boolean>>({
+    guns: true,
+    helmets: true,
+    armor: true,
+    rigs: true,
+    armoredRigs: false,
+    unarmoredRigs: true,
+    backpacks: true,
+    maps: true,
+  });
+
   const randomizeItem = (type: string, delay: number) => {
+    if (!componentStatus[type]) return;
+
     let itemsToPick = items[type];
 
     // Special logic for guns (filter by selected types)
@@ -132,6 +133,21 @@ const App: React.FC = () => {
         : items.helmets.armored;
     }
 
+    // Skip armor randomization if it's not enabled
+    if (type === 'armor' && !componentStatus.armor) {
+      return; 
+    }
+
+    if (type === 'rigs') {
+      if (componentStatus.armoredRigs && !componentStatus.unarmoredRigs) {
+        itemsToPick = items.rigs.Armored;
+      } else if (componentStatus.unarmoredRigs && !componentStatus.armoredRigs) {
+        itemsToPick = items.rigs.Unarmored;
+      } else {
+        itemsToPick = [];
+      }
+    }
+
     if (itemsToPick.length === 0) return;
 
     let index = 0;
@@ -145,12 +161,22 @@ const App: React.FC = () => {
       const randomIndex = Math.floor(Math.random() * itemsToPick.length);
       setRandomized((prev) => ({ ...prev, [type]: itemsToPick[randomIndex] }));
       setSpinning((prev) => ({ ...prev, [type]: null }));
-      playSound();
     }, delay);
   };
 
   // Handle the randomization process for all item types
   const handleRandomize = () => {
+    if (selectedGunTypes.length === 0) {
+      window.alert('No gun category selected!');
+      return;
+    }
+
+    if (componentStatus.armor && componentStatus.armoredRigs) {
+      window.alert('You cannot select both Armor and Armored Rigs at the same time!');
+      return;
+    }
+    
+
     setShowLoadout(true);
     randomizeItem('guns', 2000);
     randomizeItem('helmets', 3000);
@@ -158,10 +184,6 @@ const App: React.FC = () => {
     randomizeItem('rigs', 5000);
     randomizeItem('backpacks', 6000);
     randomizeItem('maps', 7000);
-    const selectedMap = randomized.maps;
-    if (selectedMap && objectives[selectedMap]) {
-      setTimeout(() => randomizeItem('objectives', 8000), 7000);
-    }
   };
 
   // Render a randomized item
@@ -172,7 +194,16 @@ const App: React.FC = () => {
     </div>
   );
 
-  // DropdownItem Component
+  const DropdownWithToggle: React.FC<{
+    label: string;
+    type: string;
+    options: string[];
+  }> = ({ label, type, options }) => (
+    <div className="flex items-center space-x-2">
+      <DropdownItem label={label} type={type} options={options} />
+    </div>
+  );
+
   const DropdownItem: React.FC<{ label: string; type: string; options: string[] }> = ({
     label,
     type,
@@ -182,15 +213,35 @@ const App: React.FC = () => {
 
     // Handle checkbox changes
     const handleCheckboxChange = (option: string) => {
-      if (label === "Helmets" && option === "Hats") {
+      if (type === 'rigs') {
+        if (option === 'Armored Rigs') {
+          setComponentStatus((prev) => ({
+            ...prev,
+            armoredRigs: !prev.armoredRigs,
+            unarmoredRigs: false,
+          }));
+        } else if (option === 'Unarmored Rigs') {
+          setComponentStatus((prev) => ({
+            ...prev,
+            unarmoredRigs: !prev.unarmoredRigs,
+            armoredRigs: false,
+          }));
+        }
+      } else if (type === 'armor' && option === 'Enabled') {
+        setComponentStatus((prev) => ({ ...prev, armor: !prev.armor }));
+      } else if (type === 'helmets' && option === 'Hats') {
         setIncludeHats((prev) => !prev);
+      } else if (type === 'guns') {
+        setSelectedGunTypes((prev) =>
+          prev.includes(option)
+            ? prev.filter((gunType) => gunType !== option) // Remove if already selected
+            : [...prev, option] // Add if not selected
+        );
+      } else if (type === 'maps' || type === 'backpacks') {
+        setComponentStatus((prev) => ({ ...prev, [type]: !prev[type] }));
       }
-
-      setSelectedGunTypes((prev) =>
-        prev.includes(option) ? prev.filter((type) => type !== option) : [...prev, option]
-      );
     };
-
+  
     return (
       <div className="relative">
         {/* Dropdown Button */}
@@ -227,7 +278,13 @@ const App: React.FC = () => {
                   type="checkbox"
                   className="mr-2 accent-indigo-600"
                   onChange={() => handleCheckboxChange(option)}
-                  checked={selectedGunTypes.includes(option)}
+                  checked={
+                    (type === 'armor' && option === 'Enabled' && componentStatus.armor) ||
+                    (type === 'helmets' && option === 'Hats' && includeHats) ||
+                    (type === 'rigs' && option === 'Armored Rigs' && componentStatus.armoredRigs) ||
+                    (type === 'rigs' && option === 'Unarmored Rigs' && componentStatus.unarmoredRigs) ||
+                    (type === 'guns' && selectedGunTypes.includes(option))
+                  }
                 />
                 {option}
               </label>
@@ -252,30 +309,28 @@ const App: React.FC = () => {
         Your browser does not support the video tag.
       </video>
 
-      {/* Customization Section */}
-      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-48 text-white">
+      {/* Customization Menu */}
+      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-64 ml-4 text-white mt-4">
         <h3 className="text-xl font-bold mb-4 text-center">Customization</h3>
-        <div className="flex flex-col space-y-4">
-          <DropdownItem
-            label="Guns"
-            type="guns"
-            options={Object.keys(items.guns)}
+        <div className="flex flex-col items-center space-y-4">
+          <DropdownWithToggle label="Guns" type="guns" options={Object.keys(items.guns)} />
+          <DropdownWithToggle label="Helmets" type="helmets" options={['Hats']} />
+          <DropdownWithToggle label="Armor" type="armor" options={['Enabled']} />
+          <DropdownWithToggle
+            label="Rigs"
+            type="rigs"
+            options={['Armored Rigs', 'Unarmored Rigs']}
           />
-          <DropdownItem label="Helmets" type="helmets" options={['Hats']} />
-          <DropdownItem label="Armor" type="armor" options={['Enabled']} />
-          <DropdownItem label="Rigs" type="rigs" options={['Armored Rigs', 'Unarmored Rigs']} />
-          <DropdownItem label="Backpacks" type="backpacks" options={['Enabled']} />
-          <DropdownItem label="Maps" type="maps" options={['Enabled']} />
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-grow flex flex-col items-center justify-center text-red-500">
+      <div className="flex-grow flex flex-col items-center justify-center">
         <button
           onClick={handleRandomize}
-          className="relative items-center justify-center inline-block p-4 px-5 py-3 overflow-hidden font-medium text-indigo-600 rounded-lg shadow-2xl group"
+          className="mt-8 px-6 py-3 border-2 border-blue-500 text-blue-500 text-xl hover:bg-blue-500 hover:text-white transition duration-300"
         >
-          <span className="relative text-white font-bold">Generate Loadout</span>
+          <span className="relative font-bold">Generate Loadout</span>
         </button>
 
         {/* Display Loadout */}
@@ -283,11 +338,10 @@ const App: React.FC = () => {
           <div className="mt-6 text-white text-center">
             <RenderItem label="Gun" type="guns" />
             <RenderItem label="Helmet" type="helmets" />
-            <RenderItem label="Armor" type="armor" />
+            {componentStatus.armor && <RenderItem label="Armor" type="armor" />}
             <RenderItem label="Rig" type="rigs" />
             <RenderItem label="Backpack" type="backpacks" />
             <RenderItem label="Map" type="maps" />
-            <RenderItem label="Objective" type="objectives" />
           </div>
         )}
       </div>

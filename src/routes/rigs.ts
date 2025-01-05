@@ -4,6 +4,11 @@ import { load } from 'cheerio';
 
 const router = express.Router();
 
+interface Rigs {
+  Armored: string[];
+  Unarmored: string[];
+}
+
 //API for scraping the rigs section
 router.get('/rigs', async (req, res) => {
   try{
@@ -16,10 +21,15 @@ router.get('/rigs', async (req, res) => {
     
 
     const $ = load(data);
-    const rigs: string[] = [];
 
+    const rigs: Rigs = {
+      Armored: [],
+      Unarmored: []
+    };
+
+    
   // Helper function to extract rigs from a specific category
-  const extractRigsFromCategory = (categoryId: string): void => {
+  const extractRigsFromCategory = (categoryId: string, targetArray: string[]): void => {
       const categorySection = $(`#${categoryId}`).parent();
       const categoryTable = categorySection.nextAll('table.wikitable').first();
 
@@ -27,14 +37,14 @@ router.get('/rigs', async (req, res) => {
         const rigName = $(row).find('th a').text().trim();
         if (rigName) {
           console.log(`Found rig in ${categoryId}:`, rigName);
-          rigs.push(rigName);
+          targetArray.push(rigName);
         }
       });
     };
 
     //extract rigs from the respective categories
-    extractRigsFromCategory('Armored');
-    extractRigsFromCategory('Unarmored');
+    extractRigsFromCategory('Armored', rigs.Armored);
+    extractRigsFromCategory('Unarmored', rigs.Unarmored);
 
 
     //Puts rigs data into a JSON
