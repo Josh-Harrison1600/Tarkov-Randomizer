@@ -22,6 +22,7 @@
       
 
       const $ = load(data);
+      
       const helmets: Helmets = {
         armored: [],
         vanity: []

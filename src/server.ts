@@ -23,7 +23,13 @@ app.listen(PORT, () => {
   console.log("🚀 Backend Started");
   console.log(`📅 Date: ${now.toLocaleDateString()}`);
   console.log(`⏰ Time: ${now.toLocaleTimeString()}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log("")
+  console.log("🌐 URLs:")
+  console.log(`🔗 http://localhost:${PORT}/api/guns`);
+  console.log(`🔗 http://localhost:${PORT}/api/helmets`);
+  console.log(`🔗 http://localhost:${PORT}/api/armor`);
+  console.log(`🔗 http://localhost:${PORT}/api/rigs`);
+  console.log(`🔗 http://localhost:${PORT}/api/backpacks`);
   console.log("--------------------------------------");
   console.log("");
 });

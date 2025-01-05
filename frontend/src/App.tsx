@@ -6,8 +6,20 @@ import ItemPicked from './assets/ItemPicked.wav';
 import objectives from './Objectives';
 
 const App: React.FC = () => {
+  // State for items fetched from the API
   const [items, setItems] = useState<Record<string, any>>({
-    guns: [],
+    guns: {
+      "Assault Carbines": [],
+      "Assault Rifles": [],
+      "Bolt-Action": [],
+      "Marksman Rifles": [],
+      Shotguns: [],
+      SMGs: [],
+      LMGs: [],
+      Launchers: [],
+      Pistols: [],
+      Revolvers: [],
+    },
     helmets: { armored: [], vanity: [] },
     armor: [],
     rigs: [],
@@ -16,6 +28,7 @@ const App: React.FC = () => {
     objectives: [],
   });
 
+  // State for randomized items
   const [randomized, setRandomized] = useState<Record<string, string | null>>({
     guns: null,
     helmets: null,
@@ -26,6 +39,7 @@ const App: React.FC = () => {
     objectives: null,
   });
 
+  // State for spinning animation during randomization
   const [spinning, setSpinning] = useState<Record<string, string | null>>({
     guns: null,
     helmets: null,
@@ -36,16 +50,35 @@ const App: React.FC = () => {
     objectives: null,
   });
 
-  const [includeHats, setIncludeHats] = useState(true);
+  // State for selected gun types (for filtering)
+  const [selectedGunTypes, setSelectedGunTypes] = useState<string[]>([]);
+
+  // Whether to include hats in the helmet randomization
+  const [includeHats, setIncludeHats] = useState(false);
+
+  // State to show the randomized loadout
   const [showLoadout, setShowLoadout] = useState(false);
 
+  // State to manage whether dropdowns are open or closed
+  const [dropdownStates, setDropdownStates] = useState<Record<string, boolean>>({
+    guns: false,
+    helmets: false,
+    armor: false,
+    rigs: false,
+    backpacks: false,
+    maps: false,
+  });
+
+  // Background video URL from environment variables
   const videoUrl = import.meta.env.VITE_API_S3;
 
+  // Play sound effect when an item is randomized
   const playSound = () => {
     const audio = new Audio(ItemPicked);
     audio.play();
   };
 
+  // Fetch items from the API for a given type
   const fetchItems = async (itemType: string) => {
     try {
       const response = await fetch(`http://localhost:3001/api/${itemType}`);
@@ -58,6 +91,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Fetch all items on component mount
   useEffect(() => {
     const fetchAllItems = async () => {
       const guns = await fetchItems('guns');
@@ -73,15 +107,26 @@ const App: React.FC = () => {
         rigs,
         backpacks,
       }));
+
+      // Populate selectedGunTypes with all gun categories by default
+      setSelectedGunTypes(Object.keys(guns || {}));
     };
     fetchAllItems();
   }, []);
 
+  // Randomize an item for a given type with a delay
   const randomizeItem = (type: string, delay: number) => {
     let itemsToPick = items[type];
 
+    // Special logic for guns (filter by selected types)
+    if (type === 'guns') {
+      itemsToPick = Object.entries(items.guns)
+        .filter(([key]) => selectedGunTypes.includes(key))
+        .flatMap(([, values]) => values);
+    }
+
+    // Special logic for helmets (combine categories based on "includeHats")
     if (type === 'helmets') {
-      // This will combine armored and vanity helmets based on the "hats" checkbox
       itemsToPick = includeHats
         ? [...items.helmets.armored, ...items.helmets.vanity]
         : items.helmets.armored;
@@ -104,6 +149,7 @@ const App: React.FC = () => {
     }, delay);
   };
 
+  // Handle the randomization process for all item types
   const handleRandomize = () => {
     setShowLoadout(true);
     randomizeItem('guns', 2000);
@@ -127,14 +173,34 @@ const App: React.FC = () => {
   );
 
   // DropdownItem Component
-  const DropdownItem: React.FC<{ label: string; options: string[] }> = ({ label, options }) => {
-    const [isOpen, setIsOpen] = useState(false);
+  const DropdownItem: React.FC<{ label: string; type: string; options: string[] }> = ({
+    label,
+    type,
+    options,
+  }) => {
+    const isOpen = dropdownStates[type];
+
+    // Handle checkbox changes
+    const handleCheckboxChange = (option: string) => {
+      if (label === "Helmets" && option === "Hats") {
+        setIncludeHats((prev) => !prev);
+      }
+
+      setSelectedGunTypes((prev) =>
+        prev.includes(option) ? prev.filter((type) => type !== option) : [...prev, option]
+      );
+    };
 
     return (
       <div className="relative">
         {/* Dropdown Button */}
         <button
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() =>
+            setDropdownStates((prev) => ({
+              ...prev,
+              [type]: !prev[type],
+            }))
+          }
           className="w-full text-left bg-gray-700 rounded-lg px-4 py-2 flex justify-between items-center"
         >
           <span>{label}</span>
@@ -151,18 +217,17 @@ const App: React.FC = () => {
 
         {/* Dropdown Options */}
         {isOpen && (
-          <div className="mt-2 bg-gray-700 rounded-lg px-4 py-2 space-y-2">
+          <div
+            className="mt-2 bg-gray-700 rounded-lg px-4 py-2 space-y-2"
+            onClick={(e) => e.stopPropagation()}
+          >
             {options.map((option, index) => (
               <label key={index} className="flex items-center">
                 <input
                   type="checkbox"
                   className="mr-2 accent-indigo-600"
-                  onChange={(e) => {
-                    if (label === "Helmets" && option === "Hats") {
-                      setIncludeHats(e.target.checked);
-                    }
-                  }}
-                  checked={label === "Helmets" && option === "Hats" ? includeHats : undefined}
+                  onChange={() => handleCheckboxChange(option)}
+                  checked={selectedGunTypes.includes(option)}
                 />
                 {option}
               </label>
@@ -193,24 +258,14 @@ const App: React.FC = () => {
         <div className="flex flex-col space-y-4">
           <DropdownItem
             label="Guns"
-            options={[
-              'Assault Carbines',
-              'Assault Rifles',
-              'Bolt-Action',
-              'Marksman Rifles',
-              'Shotguns',
-              'SMGs',
-              'LMGs',
-              'Launchers',
-              'Pistols',
-              'Revolvers',
-            ]}
+            type="guns"
+            options={Object.keys(items.guns)}
           />
-          <DropdownItem label="Helmets" options={['Hats']} />
-          <DropdownItem label="Armor" options={['Enabled']} />
-          <DropdownItem label="Rigs" options={['Armored Rigs', 'Unarmored Rigs']} />
-          <DropdownItem label="Backpacks" options={['Enabled']} />
-          <DropdownItem label="Maps" options={['Enabled']} />
+          <DropdownItem label="Helmets" type="helmets" options={['Hats']} />
+          <DropdownItem label="Armor" type="armor" options={['Enabled']} />
+          <DropdownItem label="Rigs" type="rigs" options={['Armored Rigs', 'Unarmored Rigs']} />
+          <DropdownItem label="Backpacks" type="backpacks" options={['Enabled']} />
+          <DropdownItem label="Maps" type="maps" options={['Enabled']} />
         </div>
       </div>
 
@@ -220,11 +275,6 @@ const App: React.FC = () => {
           onClick={handleRandomize}
           className="relative items-center justify-center inline-block p-4 px-5 py-3 overflow-hidden font-medium text-indigo-600 rounded-lg shadow-2xl group"
         >
-          <span className="absolute top-0 left-0 w-40 h-40 -mt-10 -ml-3 transition-all duration-700 bg-red-500 rounded-full blur-md ease"></span>
-          <span className="absolute inset-0 w-full h-full transition duration-700 group-hover:rotate-180 ease">
-            <span className="absolute bottom-0 left-0 w-24 h-24 -ml-10 bg-purple-500 rounded-full blur-md"></span>
-            <span className="absolute bottom-0 right-0 w-24 h-24 -mr-10 bg-pink-500 rounded-full blur-md"></span>
-          </span>
           <span className="relative text-white font-bold">Generate Loadout</span>
         </button>
 

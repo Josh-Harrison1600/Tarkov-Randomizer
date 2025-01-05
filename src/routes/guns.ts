@@ -4,6 +4,19 @@ import { load } from 'cheerio';
 
 const router = express.Router();
 
+//This defines the structure of the guns object
+interface Guns {
+  "Assault Carbines": string[];
+  "Assault Rifles": string[];
+  "Bolt-Action": string[];
+  "Marksman Rifles": string[];
+  Shotguns: string[];
+  SMGs: string[];
+  LMGs: string[];
+  Launchers: string[];
+  Pistols: string[];
+  Revolvers: string[];
+}
 
 //API for scraping the weapons section
 router.get('/guns', async (req, res) => {
@@ -16,10 +29,22 @@ router.get('/guns', async (req, res) => {
       console.log("--------------------------------------");
   
       const $ = load(data);
-      const guns: string[] = [];
+
+      const guns: Guns = {
+        "Assault Carbines": [],
+        "Assault Rifles": [],
+        "Bolt-Action": [],
+        "Marksman Rifles": [],
+        Shotguns: [],
+        SMGs: [],
+        LMGs: [],
+        Launchers: [],
+        Pistols: [],
+        Revolvers: [],
+      };
   
       // Helper function to extract guns from a specific category
-      const extractGunsFromCategory = (categoryId: string): void => {
+      const extractGunsFromCategory = (categoryId: string, targetArray: string[]): void => {
         const categorySection = $(`#${categoryId}`).parent();
         const categoryTable = categorySection.nextAll('table.wikitable').first();
   
@@ -27,24 +52,29 @@ router.get('/guns', async (req, res) => {
           const gunName = $(row).find('td a.mw-redirect').text().trim();
           if (gunName) {
             console.log(`Found gun in ${categoryId}:`, gunName);
-            guns.push(gunName);
+            targetArray.push(gunName);
           }
         });
       };
-  
-      //extract guns from the respective categories
-      extractGunsFromCategory('Assault_carbines');
-      extractGunsFromCategory('Assault_rifles');
-      extractGunsFromCategory('Bolt-action_rifles');
-      extractGunsFromCategory('Designated_marksman_rifles');
-      extractGunsFromCategory('Grenade_launchers');
-      extractGunsFromCategory('Light_machine_guns');
-      extractGunsFromCategory('Shotguns');
-      extractGunsFromCategory('Submachine_guns');
-      extractGunsFromCategory('Pistols');
-      extractGunsFromCategory('Revolvers');
-      extractGunsFromCategory('Shotguns_2');
-  
+      
+    //Mapping of category IDs to gun categories
+    const gunCategoryMapping: Record<string, keyof Guns> = {
+      "Assault_carbines": "Assault Carbines",
+      "Assault_rifles": "Assault Rifles",
+      "Bolt-action_rifles": "Bolt-Action",
+      "Designated_marksman_rifles": "Marksman Rifles",
+      "Grenade_launchers": "Launchers",
+      "Light_machine_guns": "LMGs",
+      "Shotguns": "Shotguns",
+      "Submachine_guns": "SMGs",
+      "Pistols": "Pistols",
+      "Revolvers": "Revolvers",
+    };
+
+    //For loop to iterate over each gun category
+    Object.entries(gunCategoryMapping).forEach(([categoryId, gunType]) => {
+      extractGunsFromCategory(categoryId, guns[gunType]);
+    })
   
       //Puts gun data into a JSON
       res.json({ guns });
