@@ -70,7 +70,7 @@ const App: React.FC = () => {
   // Fetch items from the API for a given type
   const fetchItems = async (itemType: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/${itemType}`);
+      const response = await fetch(`https://tarkov-randomizer.vercel.app/api/${itemType}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
       return data[itemType];
