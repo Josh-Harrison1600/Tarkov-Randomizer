@@ -210,7 +210,7 @@ const App: React.FC = () => {
     options,
   }) => {
     const isOpen = dropdownStates[type];
-
+  
     // Handle checkbox changes
     const handleCheckboxChange = (option: string) => {
       if (type === 'rigs') {
@@ -265,7 +265,7 @@ const App: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-
+  
         {/* Dropdown Options */}
         {isOpen && (
           <div
@@ -273,10 +273,12 @@ const App: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {options.map((option, index) => (
-              <label key={index} className="flex items-center">
+              <div key={index} className="flex items-center">
                 <input
+                  id={`${type}-${option}`} 
                   type="checkbox"
-                  className="mr-2 accent-indigo-600"
+                  value={option}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   onChange={() => handleCheckboxChange(option)}
                   checked={
                     (type === 'armor' && option === 'Enabled' && componentStatus.armor) ||
@@ -286,15 +288,20 @@ const App: React.FC = () => {
                     (type === 'guns' && selectedGunTypes.includes(option))
                   }
                 />
-                {option}
-              </label>
+                <label
+                  htmlFor={`${type}-${option}`}
+                  className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  {option}
+                </label>
+              </div>
             ))}
           </div>
         )}
       </div>
     );
   };
-
+  
   return (
     <div className="flex flex-col h-screen">
       {/* Background Video */}
@@ -310,7 +317,7 @@ const App: React.FC = () => {
       </video>
 
       {/* Customization Menu */}
-      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-64 ml-4 text-white mt-4">
+      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 border border-white rounded-lg p-4 w-64 ml-4 text-white mt-4 hover:bg-gray-900 transition duration-300">
         <h3 className="text-xl font-bold mb-4 text-center">Customization</h3>
         <div className="flex flex-col items-center space-y-4">
           <DropdownWithToggle label="Guns" type="guns" options={Object.keys(items.guns)} />

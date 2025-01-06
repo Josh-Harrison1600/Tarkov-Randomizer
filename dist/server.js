@@ -1,0 +1,37 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const guns_1 = __importDefault(require("./routes/guns"));
+const helmets_1 = __importDefault(require("./routes/helmets"));
+const armor_1 = __importDefault(require("./routes/armor"));
+const rigs_1 = __importDefault(require("./routes/rigs"));
+const backpacks_1 = __importDefault(require("./routes/backpacks"));
+const app = (0, express_1.default)();
+const PORT = 3001;
+app.use((0, cors_1.default)());
+app.use('/api', guns_1.default);
+app.use('/api', helmets_1.default);
+app.use('/api', armor_1.default);
+app.use('/api', rigs_1.default);
+app.use('/api', backpacks_1.default);
+app.listen(PORT, () => {
+    const now = new Date();
+    console.log("");
+    console.log("--------------------------------------");
+    console.log("🚀 Backend Started");
+    console.log(`📅 Date: ${now.toLocaleDateString()}`);
+    console.log(`⏰ Time: ${now.toLocaleTimeString()}`);
+    console.log("");
+    console.log("🌐 URLs:");
+    console.log(`🔗 http://localhost:${PORT}/api/guns`);
+    console.log(`🔗 http://localhost:${PORT}/api/helmets`);
+    console.log(`🔗 http://localhost:${PORT}/api/armor`);
+    console.log(`🔗 http://localhost:${PORT}/api/rigs`);
+    console.log(`🔗 http://localhost:${PORT}/api/backpacks`);
+    console.log("--------------------------------------");
+    console.log("");
+});
