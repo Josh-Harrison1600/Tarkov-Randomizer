@@ -7,5 +7,5 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src", "api/armor.ts", "api/backpacks.ts", "api/guns.ts", "api/helmets.ts", "api/rigs.ts"]
+  "include": ["api/**/*.ts"]
 }

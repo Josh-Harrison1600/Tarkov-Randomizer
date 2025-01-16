@@ -1,11 +1,9 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "api/**/*.ts",
-        "use": "@vercel/node",
-        "ignore": ["frontend/*"]
-      }
-    ]
-  }
-  
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    }
+  ]
+}
